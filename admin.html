@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎣 관리자 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#0d1117;color:#e7e9ea;font-family:-apple-system,"system-ui","Segoe UI",Roboto,sans-serif}
+
+/* ── 로그인 ── */
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px}
+#login-box{background:#16181c;border:1px solid #2f3336;border-radius:16px;padding:36px 32px;width:320px;display:flex;flex-direction:column;gap:14px}
+#login-box h2{font-size:18px;font-weight:800;text-align:center;color:#fff}
+#login-box p{font-size:12px;color:#536471;text-align:center}
+#pw-input{background:#0d1117;border:1px solid #2f3336;border-radius:8px;color:#e7e9ea;padding:10px 14px;font-size:14px;outline:none;width:100%}
+#pw-input:focus{border-color:#1d9bf0}
+#login-btn{background:#1d9bf0;border:none;border-radius:8px;color:#fff;padding:10px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s}
+#login-btn:hover{background:#1a8cd8}
+#login-err{font-size:12px;color:#f4212e;text-align:center;display:none}
+
+/* ── 대시보드 레이아웃 ── */
+#dashboard{display:none}
+#top-bar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,17,23,0.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid #2f3336;
+  display:flex;align-items:center;gap:0;padding:0 24px;height:52px;
+}
+#top-bar h1{font-size:16px;font-weight:800;color:#fff;margin-right:24px;white-space:nowrap}
+#top-bar h1 span{color:#1d9bf0}
+
+/* 사이트 탭 */
+.site-tab{
+  display:flex;align-items:center;gap:7px;
+  padding:0 18px;height:52px;border:none;background:none;
+  color:#536471;font-size:14px;font-weight:600;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;
+}
+.site-tab:hover{color:#e7e9ea}
+.site-tab.active{color:#1d9bf0;border-bottom-color:#1d9bf0}
+.site-tab .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.7}
+
+#top-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+#last-updated{font-size:11px;color:#536471}
+.range-btn{background:#16181c;border:1px solid #2f3336;border-radius:20px;color:#536471;padding:4px 12px;font-size:12px;cursor:pointer;transition:all .2s}
+.range-btn.active,.range-btn:hover{border-color:#1d9bf0;color:#1d9bf0}
+#range-btns{display:flex;gap:5px}
+
+/* 사이트 패널 */
+.site-panel{display:none;padding:24px;max-width:1100px;margin:0 auto}
+.site-panel.active{display:block}
+
+/* 합산 비교 패널 */
+#panel-combined .compare-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;
+}
+
+/* ── 카드 ── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+.card{background:#16181c;border:1px solid #2f3336;border-radius:12px;padding:18px 20px}
+.card-label{font-size:11px;color:#536471;margin-bottom:6px;letter-spacing:.3px}
+.card-value{font-size:26px;font-weight:800;color:#fff;line-height:1}
+.card-sub{font-size:11px;color:#536471;margin-top:5px}
+.card-value.blue{color:#38bdf8}
+.card-value.green{color:#4ade80}
+.card-value.yellow{color:#fbbf24}
+
+/* ── 차트 ── */
+.chart-box{background:#16181c;border:1px solid #2f3336;border-radius:12px;padding:20px;margin-bottom:18px}
+.chart-box h3{font-size:12px;font-weight:700;color:#536471;margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase}
+.chart-wrap{position:relative;height:220px}
+.chart-wrap.sm{height:170px}
+
+/* ── 테이블 ── */
+.table-box{background:#16181c;border:1px solid #2f3336;border-radius:12px;padding:20px;margin-bottom:18px;overflow-x:auto}
+.table-box h3{font-size:12px;font-weight:700;color:#536471;margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:7px 12px;color:#536471;font-weight:600;border-bottom:1px solid #2f3336;font-size:11px;letter-spacing:.3px}
+td{padding:8px 12px;border-bottom:1px solid #1a1d20;color:#e7e9ea}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.025)}
+.up{background:rgba(74,222,128,.13);color:#4ade80;border-radius:4px;padding:1px 7px;font-size:11px}
+.dn{background:rgba(244,33,46,.11);color:#f4212e;border-radius:4px;padding:1px 7px;font-size:11px}
+.eq{background:rgba(83,100,113,.18);color:#536471;border-radius:4px;padding:1px 7px;font-size:11px}
+
+/* ── 비교 카드 ── */
+.cmp-card{background:#16181c;border:1px solid #2f3336;border-radius:12px;padding:20px}
+.cmp-card h3{font-size:12px;font-weight:700;color:#536471;margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase}
+.cmp-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1d20}
+.cmp-row:last-child{border-bottom:none}
+.cmp-label{font-size:12px;color:#9ca3af}
+.cmp-vals{display:flex;gap:12px;font-size:13px;font-weight:600}
+.val-cctv{color:#38bdf8}
+.val-fortune{color:#fbbf24}
+
+/* ── 로딩 ── */
+#loading{text-align:center;padding:60px;color:#536471;font-size:14px}
+.spin{width:26px;height:26px;border:2px solid #2f3336;border-top-color:#1d9bf0;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.note{background:#16181c;border:1px solid #2f3336;border-left:3px solid #38bdf8;border-radius:10px;padding:14px 18px;margin-bottom:18px;font-size:12px;color:#9ca3af;line-height:1.7}
+.note strong{color:#38bdf8}
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div id="login-screen">
+  <div id="login-box">
+    <h2>🎣 관리자 대시보드</h2>
+    <p>관리자 비밀번호를 입력하세요</p>
+    <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="current-password">
+    <button id="login-btn">로그인</button>
+    <div id="login-err">비밀번호가 틀렸어요</div>
+  </div>
+</div>
+
+<!-- 대시보드 -->
+<div id="dashboard">
+  <div id="top-bar">
+    <h1>📊 <span>통계</span></h1>
+    <button class="site-tab active" data-panel="cctv"><span class="dot"></span>전국 낚시캠</button>
+    <button class="site-tab" data-panel="fortune"><span class="dot" style="background:#fbbf24"></span>낚시 출조운세</button>
+    <button class="site-tab" data-panel="combined"><span class="dot" style="background:#4ade80"></span>합산 비교</button>
+    <div id="top-right">
+      <div id="range-btns">
+        <button class="range-btn" data-days="7">7일</button>
+        <button class="range-btn active" data-days="30">30일</button>
+        <button class="range-btn" data-days="90">90일</button>
+      </div>
+      <button id="refresh-btn" class="range-btn" title="데이터 새로고침">↻ 새로고침</button>
+      <span id="last-updated"></span>
+    </div>
+  </div>
+
+  <div id="loading"><div class="spin"></div>데이터 불러오는 중...</div>
+
+  <div id="panels" style="display:none">
+
+    <!-- 낚시캠 패널 -->
+    <div class="site-panel active" id="panel-cctv">
+      <div class="cards">
+        <div class="card"><div class="card-label">오늘</div><div class="card-value blue" id="cc-today">—</div><div class="card-sub" id="cc-today-sub"></div></div>
+        <div class="card"><div class="card-label">어제</div><div class="card-value" id="cc-yest">—</div><div class="card-sub" id="cc-yest-sub"></div></div>
+        <div class="card"><div class="card-label">이번 주</div><div class="card-value" id="cc-week">—</div><div class="card-sub" id="cc-week-sub"></div></div>
+        <div class="card"><div class="card-label">이번 달</div><div class="card-value" id="cc-month">—</div><div class="card-sub" id="cc-month-sub"></div></div>
+        <div class="card"><div class="card-label">일평균</div><div class="card-value" id="cc-avg">—</div><div class="card-sub" id="cc-avg-sub"></div></div>
+        <div class="card"><div class="card-label">역대 최다</div><div class="card-value" id="cc-peak">—</div><div class="card-sub" id="cc-peak-date"></div></div>
+      </div>
+      <!-- 재방문 지표 -->
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+        <div class="card"><div class="card-label">재방문율</div><div class="card-value green" id="cc-revisit">—</div><div class="card-sub">2회 이상 방문한 기기 비율</div></div>
+        <div class="card"><div class="card-label">총 고유 기기</div><div class="card-value" id="cc-devices">—</div><div class="card-sub" id="cc-devices-sub"></div></div>
+        <div class="card"><div class="card-label">평균 방문 횟수</div><div class="card-value" id="cc-freq">—</div><div class="card-sub">기기 1개당 평균</div></div>
+        <div class="card"><div class="card-label">주간 성장률</div><div class="card-value" id="cc-growth">—</div><div class="card-sub">전주 대비</div></div>
+      </div>
+      <div class="chart-box"><h3>일별 방문자 추이</h3><div class="chart-wrap"><canvas id="cc-daily-chart"></canvas></div></div>
+      <div class="chart-box"><h3>요일별 평균</h3><div class="chart-wrap sm"><canvas id="cc-dow-chart"></canvas></div></div>
+      <div class="table-box"><h3>일별 상세</h3>
+        <table><thead><tr><th>날짜</th><th>요일</th><th>방문자</th><th>전일 대비</th></tr></thead>
+        <tbody id="cc-table"></tbody></table>
+      </div>
+    </div>
+
+    <!-- 출조운세 패널 -->
+    <div class="site-panel" id="panel-fortune">
+      <div class="cards">
+        <div class="card"><div class="card-label">오늘</div><div class="card-value yellow" id="ft-today">—</div><div class="card-sub" id="ft-today-sub"></div></div>
+        <div class="card"><div class="card-label">어제</div><div class="card-value" id="ft-yest">—</div><div class="card-sub" id="ft-yest-sub"></div></div>
+        <div class="card"><div class="card-label">이번 주</div><div class="card-value" id="ft-week">—</div><div class="card-sub" id="ft-week-sub"></div></div>
+        <div class="card"><div class="card-label">이번 달</div><div class="card-value" id="ft-month">—</div><div class="card-sub" id="ft-month-sub"></div></div>
+        <div class="card"><div class="card-label">일평균</div><div class="card-value" id="ft-avg">—</div><div class="card-sub" id="ft-avg-sub"></div></div>
+        <div class="card"><div class="card-label">역대 최다</div><div class="card-value" id="ft-peak">—</div><div class="card-sub" id="ft-peak-date"></div></div>
+      </div>
+      <!-- 재방문 지표 -->
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+        <div class="card"><div class="card-label">재방문율</div><div class="card-value green" id="ft-revisit">—</div><div class="card-sub">2회 이상 방문한 기기 비율</div></div>
+        <div class="card"><div class="card-label">총 고유 기기</div><div class="card-value" id="ft-devices">—</div><div class="card-sub" id="ft-devices-sub"></div></div>
+        <div class="card"><div class="card-label">평균 방문 횟수</div><div class="card-value" id="ft-freq">—</div><div class="card-sub">기기 1개당 평균</div></div>
+        <div class="card"><div class="card-label">주간 성장률</div><div class="card-value" id="ft-growth">—</div><div class="card-sub">전주 대비</div></div>
+      </div>
+      <div class="chart-box"><h3>일별 방문자 추이</h3><div class="chart-wrap"><canvas id="ft-daily-chart"></canvas></div></div>
+      <div class="chart-box"><h3>요일별 평균</h3><div class="chart-wrap sm"><canvas id="ft-dow-chart"></canvas></div></div>
+      <div class="table-box"><h3>일별 상세</h3>
+        <table><thead><tr><th>날짜</th><th>요일</th><th>방문자</th><th>전일 대비</th></tr></thead>
+        <tbody id="ft-table"></tbody></table>
+      </div>
+    </div>
+
+    <!-- 합산 비교 패널 -->
+    <div class="site-panel" id="panel-combined">
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="card"><div class="card-label">오늘 전체</div><div class="card-value green" id="cb-today">—</div><div class="card-sub">낚시캠 + 출조운세</div></div>
+        <div class="card"><div class="card-label">이번 달 전체</div><div class="card-value green" id="cb-month">—</div><div class="card-sub" id="cb-month-sub"></div></div>
+        <div class="card"><div class="card-label">누적 전체</div><div class="card-value green" id="cb-total">—</div><div class="card-sub">전 기간 합산</div></div>
+      </div>
+      <div class="chart-box"><h3>사이트별 일별 방문자 비교</h3><div class="chart-wrap"><canvas id="cb-chart"></canvas></div></div>
+      <div class="compare-row">
+        <div class="cmp-card">
+          <h3>기간별 비교</h3>
+          <div class="cmp-row"><span class="cmp-label">오늘</span><span class="cmp-vals"><span class="val-cctv" id="cmp-today-cc">—</span><span class="val-fortune" id="cmp-today-ft">—</span></span></div>
+          <div class="cmp-row"><span class="cmp-label">어제</span><span class="cmp-vals"><span class="val-cctv" id="cmp-yest-cc">—</span><span class="val-fortune" id="cmp-yest-ft">—</span></span></div>
+          <div class="cmp-row"><span class="cmp-label">이번 주</span><span class="cmp-vals"><span class="val-cctv" id="cmp-week-cc">—</span><span class="val-fortune" id="cmp-week-ft">—</span></span></div>
+          <div class="cmp-row"><span class="cmp-label">이번 달</span><span class="cmp-vals"><span class="val-cctv" id="cmp-month-cc">—</span><span class="val-fortune" id="cmp-month-ft">—</span></span></div>
+          <div class="cmp-row"><span class="cmp-label">누적</span><span class="cmp-vals"><span class="val-cctv" id="cmp-total-cc">—</span><span class="val-fortune" id="cmp-total-ft">—</span></span></div>
+          <div style="margin-top:12px;display:flex;gap:14px;font-size:11px">
+            <span style="color:#38bdf8">● 낚시캠</span>
+            <span style="color:#fbbf24">● 출조운세</span>
+          </div>
+        </div>
+        <div class="cmp-card">
+          <h3>요일별 합산 평균</h3>
+          <div class="chart-wrap sm"><canvas id="cb-dow-chart"></canvas></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>📌 방문자 측정 방식</strong><br>
+        두 사이트 모두 <strong>기기별 localStorage</strong>로 하루 1회 카운트해요.
+        같은 사람이 두 사이트를 모두 방문해도 각각 별도로 집계되어 중복이 있을 수 있어요.
+      </div>
+    </div>
+
+  </div><!-- /panels -->
+</div><!-- /dashboard -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const ADMIN_PW = 'duql';
+
+// ── 로그인 ──
+const pwInput = document.getElementById('pw-input');
+document.getElementById('login-btn').addEventListener('click', tryLogin);
+pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+function tryLogin(){
+  if(pwInput.value === ADMIN_PW){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    initDashboard();
+  } else {
+    document.getElementById('login-err').style.display='block';
+    pwInput.value=''; pwInput.focus();
+  }
+}
+
+// ── Firebase ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDhV9Fp7GkfBAgYAAG5zVnOdapDgzyjWAQ",
+  authDomain: "fishing-cam.firebaseapp.com",
+  databaseURL: "https://fishing-cam-default-rtdb.firebaseio.com",
+  projectId: "fishing-cam",
+  storageBucket: "fishing-cam.firebasestorage.app",
+  messagingSenderId: "864488079860",
+  appId: "1:864488079860:web:2d808ab89e64bb8b7b79a1"
+};
+
+// ── 유틸 ──
+const DAYS_KO = ['일','월','화','수','목','금','토'];
+function kstToday(){
+  return new Date(Date.now()+9*60*60*1000).toISOString().slice(0,10).replace(/-/g,'');
+}
+function dateRange(days){
+  const r=[];
+  for(let i=days-1;i>=0;i--){
+    r.push(new Date(Date.now()+9*60*60*1000-i*86400000).toISOString().slice(0,10).replace(/-/g,''));
+  }
+  return r;
+}
+function fmtDate(s){ return `${s.slice(0,4)}.${s.slice(4,6)}.${s.slice(6,8)}`; }
+function getDow(s){ return DAYS_KO[new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`).getDay()]; }
+function getDowIdx(s){ return new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`).getDay(); }
+function diffBadge(d){ return d===0?`<span class="eq">±0</span>`:d>0?`<span class="up">+${d}</span>`:`<span class="dn">${d}</span>`; }
+
+let charts = {};
+let allCC = {}, allFT = {};
+let currentDays = 30;
+let _db = null; // Firebase db 참조 (새로고침용)
+
+// ── 카드/차트/테이블 공통 렌더 ──
+function renderSite(prefix, data, accentColor, days){
+  const today = kstToday();
+  const dates = dateRange(days);
+  const values = dates.map(d=>data[d]||0);
+
+  const todayV = data[today]||0;
+  const yesterdayKey = dateRange(2)[0];
+  const yesterdayV = data[yesterdayKey]||0;
+  const weekTotal = dateRange(7).reduce((a,d)=>a+(data[d]||0),0);
+  const lastWeekTotal = dateRange(14).slice(0,7).reduce((a,d)=>a+(data[d]||0),0);
+  const thisMonth = today.slice(0,6);
+  const monthTotal = Object.keys(data).filter(d=>d.startsWith(thisMonth)).reduce((a,d)=>a+(data[d]||0),0);
+  const lastMonth = (()=>{const y=+today.slice(0,4),m=+today.slice(4,6);return m===1?`${y-1}12`:`${y}${String(m-1).padStart(2,'0')}`;})();
+  const lastMonthTotal = Object.keys(data).filter(d=>d.startsWith(lastMonth)).reduce((a,d)=>a+(data[d]||0),0);
+  const validV = values.filter(v=>v>0);
+  const avg = validV.length ? Math.round(validV.reduce((a,b)=>a+b,0)/validV.length) : 0;
+  let peakDate='',peakVal=0;
+  Object.keys(data).forEach(d=>{ if((data[d]||0)>peakVal){peakVal=data[d];peakDate=d;} });
+
+  set(`${prefix}-today`, todayV.toLocaleString());
+  set(`${prefix}-today-sub`, todayV-yesterdayV===0?'어제와 동일':(todayV-yesterdayV>0?`어제보다 +${todayV-yesterdayV}명`:`어제보다 ${todayV-yesterdayV}명`));
+  set(`${prefix}-yest`, yesterdayV.toLocaleString());
+  set(`${prefix}-yest-sub`, fmtDate(yesterdayKey));
+  set(`${prefix}-week`, weekTotal.toLocaleString());
+  set(`${prefix}-week-sub`, lastWeekTotal?`전주 ${lastWeekTotal.toLocaleString()}명 대비 ${weekTotal-lastWeekTotal>=0?'+':''}${weekTotal-lastWeekTotal}`:'비교 데이터 없음');
+  set(`${prefix}-month`, monthTotal.toLocaleString());
+  set(`${prefix}-month-sub`, lastMonthTotal?`전월 ${lastMonthTotal.toLocaleString()}명`:'');
+  set(`${prefix}-avg`, avg.toLocaleString());
+  set(`${prefix}-avg-sub`, `최근 ${days}일 기준`);
+  set(`${prefix}-peak`, peakVal.toLocaleString());
+  set(`${prefix}-peak-date`, peakDate?fmtDate(peakDate):'데이터 없음');
+
+  // 일별 차트
+  const barColors = dates.map(d=>d===today?accentColor:accentColor.replace('0.9','0.4'));
+  if(charts[prefix+'-daily']) charts[prefix+'-daily'].destroy();
+  charts[prefix+'-daily'] = new Chart(document.getElementById(`${prefix}-daily-chart`).getContext('2d'),{
+    type:'bar',
+    data:{labels:dates.map(d=>`${d.slice(4,6)}/${d.slice(6,8)}`),datasets:[{label:'방문자',data:values,backgroundColor:barColors,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString()}명`}}},
+      scales:{x:{grid:{color:'#1a1d20'},ticks:{color:'#536471',font:{size:11},maxRotation:0,autoSkip:true,maxTicksLimit:15}},
+              y:{grid:{color:'#1a1d20'},ticks:{color:'#536471',callback:v=>v.toLocaleString()},beginAtZero:true}}}
+  });
+
+  // 요일별 차트
+  const ds=[0,0,0,0,0,0,0],dc=[0,0,0,0,0,0,0];
+  dates.forEach(d=>{const v=data[d]||0;if(v>0){const i=getDowIdx(d);ds[i]+=v;dc[i]++;}});
+  const da=ds.map((s,i)=>dc[i]?Math.round(s/dc[i]):0);
+  const mx=Math.max(...da);
+  if(charts[prefix+'-dow']) charts[prefix+'-dow'].destroy();
+  charts[prefix+'-dow'] = new Chart(document.getElementById(`${prefix}-dow-chart`).getContext('2d'),{
+    type:'bar',
+    data:{labels:DAYS_KO,datasets:[{label:'평균',data:da,backgroundColor:da.map(v=>v===mx?accentColor:accentColor.replace('0.9','0.35')),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`평균 ${c.parsed.y.toLocaleString()}명`}}},
+      scales:{x:{grid:{color:'#1a1d20'},ticks:{color:'#536471'}},y:{grid:{color:'#1a1d20'},ticks:{color:'#536471',callback:v=>v.toLocaleString()},beginAtZero:true}}}
+  });
+
+  // 테이블
+  const tbody=document.getElementById(`${prefix}-table`);
+  tbody.innerHTML='';
+  [...dates].reverse().forEach((d,i,arr)=>{
+    const v=data[d]||0;
+    const prevKey=arr[i+1];
+    const prev=prevKey!=null?(data[prevKey]||0):null;
+    tbody.innerHTML+=`<tr${d===today?' style="background:rgba(29,155,240,0.06)"':''}>
+      <td>${fmtDate(d)}${d===today?' <span style="font-size:10px;color:#1d9bf0">오늘</span>':''}</td>
+      <td>${getDow(d)}요일</td>
+      <td><strong>${v.toLocaleString()}</strong>명</td>
+      <td>${prev!==null?diffBadge(v-prev):'—'}</td>
+    </tr>`;
+  });
+}
+
+function renderCombined(days){
+  const today = kstToday();
+  const dates = dateRange(days);
+  const ccV = dates.map(d=>allCC[d]||0);
+  const ftV = dates.map(d=>allFT[d]||0);
+  const combined = dates.map((_,i)=>ccV[i]+ftV[i]);
+
+  const todayCC=allCC[today]||0, todayFT=allFT[today]||0;
+  const yesterdayKey=dateRange(2)[0];
+  const thisMonth=today.slice(0,6);
+  const monthCC=Object.keys(allCC).filter(d=>d.startsWith(thisMonth)).reduce((a,d)=>a+(allCC[d]||0),0);
+  const monthFT=Object.keys(allFT).filter(d=>d.startsWith(thisMonth)).reduce((a,d)=>a+(allFT[d]||0),0);
+  const totalCC=Object.values(allCC).reduce((a,v)=>a+v,0);
+  const totalFT=Object.values(allFT).reduce((a,v)=>a+v,0);
+  const weekCC=dateRange(7).reduce((a,d)=>a+(allCC[d]||0),0);
+  const weekFT=dateRange(7).reduce((a,d)=>a+(allFT[d]||0),0);
+
+  set('cb-today',(todayCC+todayFT).toLocaleString());
+  set('cb-month',(monthCC+monthFT).toLocaleString());
+  set('cb-month-sub',`낚시캠 ${monthCC.toLocaleString()} + 운세 ${monthFT.toLocaleString()}`);
+  set('cb-total',(totalCC+totalFT).toLocaleString());
+
+  set('cmp-today-cc',todayCC.toLocaleString()+'명');
+  set('cmp-today-ft',todayFT.toLocaleString()+'명');
+  set('cmp-yest-cc',(allCC[yesterdayKey]||0).toLocaleString()+'명');
+  set('cmp-yest-ft',(allFT[yesterdayKey]||0).toLocaleString()+'명');
+  set('cmp-week-cc',weekCC.toLocaleString()+'명');
+  set('cmp-week-ft',weekFT.toLocaleString()+'명');
+  set('cmp-month-cc',monthCC.toLocaleString()+'명');
+  set('cmp-month-ft',monthFT.toLocaleString()+'명');
+  set('cmp-total-cc',totalCC.toLocaleString()+'명');
+  set('cmp-total-ft',totalFT.toLocaleString()+'명');
+
+  // 비교 라인 차트
+  if(charts['cb']) charts['cb'].destroy();
+  charts['cb'] = new Chart(document.getElementById('cb-chart').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:dates.map(d=>`${d.slice(4,6)}/${d.slice(6,8)}`),
+      datasets:[
+        {label:'낚시캠',data:ccV,backgroundColor:'rgba(56,189,248,0.7)',borderRadius:3,stack:'s'},
+        {label:'출조운세',data:ftV,backgroundColor:'rgba(251,191,36,0.7)',borderRadius:3,stack:'s'},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#9ca3af',font:{size:12}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString()}명`}}},
+      scales:{x:{grid:{color:'#1a1d20'},ticks:{color:'#536471',font:{size:11},maxRotation:0,autoSkip:true,maxTicksLimit:15},stacked:true},
+              y:{grid:{color:'#1a1d20'},ticks:{color:'#536471',callback:v=>v.toLocaleString()},beginAtZero:true,stacked:true}}}
+  });
+
+  // 요일별 합산
+  const ds=[0,0,0,0,0,0,0],dc=[0,0,0,0,0,0,0];
+  dates.forEach(d=>{const v=(allCC[d]||0)+(allFT[d]||0);if(v>0){const i=getDowIdx(d);ds[i]+=v;dc[i]++;}});
+  const da=ds.map((s,i)=>dc[i]?Math.round(s/dc[i]):0);
+  const mx=Math.max(...da);
+  if(charts['cb-dow']) charts['cb-dow'].destroy();
+  charts['cb-dow'] = new Chart(document.getElementById('cb-dow-chart').getContext('2d'),{
+    type:'bar',
+    data:{labels:DAYS_KO,datasets:[{label:'합산 평균',data:da,backgroundColor:da.map(v=>v===mx?'rgba(74,222,128,0.85)':'rgba(74,222,128,0.35)'),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString()}명`}}},
+      scales:{x:{grid:{color:'#1a1d20'},ticks:{color:'#536471'}},y:{grid:{color:'#1a1d20'},ticks:{color:'#536471',callback:v=>v.toLocaleString()},beginAtZero:true}}}
+  });
+}
+
+function set(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+
+function renderAll(days){
+  renderSite('cc', allCC, 'rgba(56,189,248,0.9)', days);
+  renderSite('ft', allFT, 'rgba(251,191,36,0.9)', days);
+  renderRevisit('cc', allSessCC);
+  renderRevisit('ft', allSessFT);
+  renderCombined(days);
+  const now=new Date(Date.now()+9*60*60*1000);
+  document.getElementById('last-updated').textContent=`KST ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} 기준`;
+}
+
+// ── 탭 전환 ──
+document.querySelectorAll('.site-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.site-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.site-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+  });
+});
+
+// ── 새로고침 버튼 ──
+document.getElementById('refresh-btn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '↻ 로딩...';
+  btn.disabled = true;
+  const [snapCC, snapFT, snapSCC, snapSFT] = await Promise.all([
+    get(ref(_db,'visitors')),
+    get(ref(_db,'visitors_fortune')),
+    get(ref(_db,'sessions')),
+    get(ref(_db,'sessions_fortune'))
+  ]);
+  allCC = snapCC.exists() ? snapCC.val() : {};
+  allFT = snapFT.exists() ? snapFT.val() : {};
+  allSessCC = snapSCC.exists() ? snapSCC.val() : {};
+  allSessFT = snapSFT.exists() ? snapSFT.val() : {};
+  renderAll(currentDays);
+  btn.textContent = '↻ 새로고침';
+  btn.disabled = false;
+});
+
+// ── 범위 버튼 ──
+document.querySelectorAll('.range-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentDays=parseInt(btn.dataset.days);
+    renderAll(currentDays);
+  });
+});
+
+// ── 세션 기반 재방문 지표 계산 ──
+function calcRevisitMetrics(sessions){
+  const devs = Object.values(sessions);
+  if(!devs.length) return { revisitRate:'—', devices:'0', freq:'—', growth:'—' };
+  const total = devs.length;
+  const returning = devs.filter(d=>d.visitCount>1).length;
+  const revisitRate = Math.round(returning/total*100) + '%';
+  const avgFreq = (devs.reduce((a,d)=>a+(d.visitCount||1),0)/total).toFixed(1) + '회';
+
+  // 주간 성장률: 이번 주 vs 지난 주 신규 기기 수
+  const today = kstToday();
+  const thisWeekDates = new Set(dateRange(7));
+  const lastWeekDates = new Set(dateRange(14).slice(0,7));
+  const newThisWeek = devs.filter(d=>d.firstVisit && thisWeekDates.has(d.firstVisit)).length;
+  const newLastWeek = devs.filter(d=>d.firstVisit && lastWeekDates.has(d.firstVisit)).length;
+  let growth = '—';
+  if(newLastWeek>0){
+    const pct = Math.round((newThisWeek-newLastWeek)/newLastWeek*100);
+    growth = (pct>=0?'+':'')+pct+'%';
+  }
+  return { revisitRate, devices: total.toLocaleString(), returning, freq: avgFreq, growth };
+}
+
+function renderRevisit(prefix, sessions){
+  const m = calcRevisitMetrics(sessions);
+  set(prefix+'-revisit', m.revisitRate);
+  set(prefix+'-devices', m.devices);
+  set(prefix+'-devices-sub', `재방문 ${(m.returning||0).toLocaleString()}기기 포함`);
+  set(prefix+'-freq', m.freq);
+  const growthEl = document.getElementById(prefix+'-growth');
+  if(growthEl){
+    growthEl.textContent = m.growth;
+    growthEl.className = 'card-value' + (m.growth.startsWith('+')?' green': m.growth.startsWith('-')?' card-value':'' );
+  }
+}
+
+let allSessCC = {}, allSessFT = {};
+
+// ── Firebase 로드 ──
+async function initDashboard(){
+  const fbApp = initializeApp(firebaseConfig);
+  _db = getDatabase(fbApp);
+  const auth = getAuth(fbApp);
+  await signInAnonymously(auth).catch(()=>{});
+
+  const [snapCC, snapFT, snapSCC, snapSFT] = await Promise.all([
+    get(ref(_db,'visitors')),
+    get(ref(_db,'visitors_fortune')),
+    get(ref(_db,'sessions')),
+    get(ref(_db,'sessions_fortune'))
+  ]);
+  allCC = snapCC.exists() ? snapCC.val() : {};
+  allFT = snapFT.exists() ? snapFT.val() : {};
+  allSessCC = snapSCC.exists() ? snapSCC.val() : {};
+  allSessFT = snapSFT.exists() ? snapSFT.val() : {};
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('panels').style.display='block';
+  renderAll(currentDays);
+}
+</script>
+</body>
+</html>
