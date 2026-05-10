@@ -60,11 +60,29 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
 }
 #nav-row2{
   display:flex;align-items:center;padding:0 6px;
-  overflow-x:auto;scrollbar-width:none;height:0;overflow:hidden;
+  scrollbar-width:none;
+  height:0;overflow:hidden;
   transition:height .18s ease;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+  scroll-snap-type:x proximity;
 }
-#nav-row2.open{height:38px}
+#nav-row2.open{
+  height:38px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  /* 오른쪽 끝 페이드 — "더 있다"는 시각 신호 */
+  -webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 28px),transparent 100%);
+          mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 28px),transparent 100%);
+}
+#nav-row2.open.scrolled-end{
+  -webkit-mask-image:none;
+          mask-image:none;
+}
 #nav-row2::-webkit-scrollbar{display:none}
+#nav-row2 .ntab{scroll-snap-align:start}
+/* 마지막 칩 뒤 여백 — 페이드 영역에 가리지 않도록 */
+#nav-row2 .sub-group::after{content:'';flex-shrink:0;width:24px;height:1px}
 .ntab{
   flex-shrink:0;padding:8px 11px;font-size:13px;color:#536471;
   cursor:pointer;border:none;border-bottom:2px solid transparent;
@@ -1096,7 +1114,22 @@ document.querySelectorAll('#nav-row2 .ntab').forEach(btn=>btn.addEventListener('
   document.querySelectorAll('#nav-row2 .ntab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   activeFilter=btn.dataset.f; applyFilter();
+  // 활성 칩이 화면에 보이도록 스크롤
+  btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }));
+
+// Row 2 스크롤 끝 도달 감지 — 페이드 그라데이션 토글
+(function(){
+  const r2=document.getElementById('nav-row2');
+  function update(){
+    const atEnd=r2.scrollLeft+r2.clientWidth>=r2.scrollWidth-2;
+    r2.classList.toggle('scrolled-end',atEnd);
+  }
+  r2.addEventListener('scroll',update,{passive:true});
+  // open 토글될 때 + 윈도우 리사이즈 시 재계산
+  new MutationObserver(()=>setTimeout(update,200)).observe(r2,{attributes:true,attributeFilter:['class']});
+  window.addEventListener('resize',update);
+})();
 
 // ═══ SEARCH & PLACE SEARCH ════════════════════════════════════
 const si=document.getElementById('search-input'),sc=document.getElementById('search-clear');
