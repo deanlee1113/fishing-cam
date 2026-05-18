@@ -1,0 +1,16 @@
+# wrangler / 비밀값 — 절대 커밋 금지
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
+node_modules
+
+# OS / 에디터 임시파일
+.DS_Store
+~$*
+*.tmp
+
+# 로컬 백업/원본 HTML (배포 대상 아님)
+index 복사본.html
+낚시캠.html

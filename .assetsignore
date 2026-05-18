@@ -1,0 +1,21 @@
+# 정적 파일로 "공개되면 안 되는" 것들 — Cloudflare가 이 목록은 서빙하지 않음
+# (index.html, admin.html 등 실제 페이지는 여기 없으므로 정상 서빙됨)
+worker
+functions
+scripts
+.github
+.git
+node_modules
+.wrangler
+*.md
+*.docx
+*.xlsx
+.dev.vars*
+.env*
+wrangler.jsonc
+.assetsignore
+.gitignore
+index 복사본.html
+낚시캠.html
+홍수통제소_테스트.html
+용인시_하천저수지_CCTV.html
