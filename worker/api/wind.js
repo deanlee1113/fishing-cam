@@ -8,6 +8,8 @@ const LA1 = 39, LA2 = 33, LO1 = 124, LO2 = 132, D = 0.5;
 const NY = Math.round((LA1 - LA2) / D) + 1; // 13
 const NX = Math.round((LO2 - LO1) / D) + 1; // 17
 const STRIDE = 3; // 시간 간격(h)
+// 응답 스키마가 바뀌면 이 값을 올린다 (엣지 캐시가 옛 포맷을 물지 않도록)
+const CACHE_VER = "v2-frames";
 
 export async function handleWind(request, env, ctx) {
   const url = new URL(request.url);
@@ -17,7 +19,7 @@ export async function handleWind(request, env, ctx) {
   };
 
   const cache = caches.default;
-  const cacheKey = new Request(url.origin + "/api/wind");
+  const cacheKey = new Request(url.origin + "/api/wind?cv=" + CACHE_VER);
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
