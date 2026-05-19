@@ -1,10 +1,11 @@
 // /api/seacam?id=51  — 해양수산부 연안포털 바다캠 스냅샷 프록시
-// 원본은 http://220.95.232.18/camera/{id}_0.jpg (HTTP, raw IP)뿐이라
-// HTTPS 사이트에서 직접 못 부른다(혼합콘텐츠 차단·"안전하지 않음" 경고).
-// Worker가 서버 측에서 HTTP로 받아 HTTPS로 전달 → 경고 해소 + 정상 표시.
-// 스냅샷(약 3초 주기 갱신)이라 캐시하지 않는다.
+// 카메라(http://220.95.232.18)는 한국 외 IP를 403 차단 → Cloudflare에서
+// 직접 못 받음. 서울 리전 Cloud Run 중계(KR IP)를 거쳐 받아 HTTPS로 전달.
+// 경로: 브라우저 → CF Worker(HTTPS) → KR Cloud Run(서울) → 카메라(HTTP·KR)
+// 스냅샷(약 3초 주기)이라 캐시하지 않는다.
 
-const ORIGIN = "http://220.95.232.18/camera/"; // _0.jpg
+const ORIGIN =
+  "https://fishing-kr-proxy-864488079860.asia-northeast3.run.app/seacam?id=";
 
 export async function handleSeacam(request, env, ctx) {
   const url = new URL(request.url);
@@ -19,7 +20,7 @@ export async function handleSeacam(request, env, ctx) {
   }
 
   try {
-    const upstream = await fetch(ORIGIN + id + "_0.jpg", {
+    const upstream = await fetch(ORIGIN + id, {
       cf: { cacheTtl: 0 },
       headers: { "User-Agent": "Mozilla/5.0 (fishing-cam proxy)" },
     });

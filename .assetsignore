@@ -3,6 +3,7 @@
 worker
 functions
 scripts
+kr-proxy
 .github
 .git
 node_modules
