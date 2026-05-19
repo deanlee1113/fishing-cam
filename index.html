@@ -1194,10 +1194,11 @@ function buildMarkers(feats){
 })();
 
 // ═══ 바다캠 (해양수산부 연안포털 — 연안침식 모니터링 CCTV 38개) ═══
-// URL: https://coast.mof.go.kr/proxy.jsp?http://10.176.62.134:9001/tilemapApi.do?url=http://220.95.232.18/camera/{ID}_0.jpg
-// 출처: coast.mof.go.kr showCamera(ID,0,'해변명') → 3초마다 JPEG 자동갱신
+// 원본 http://220.95.232.18/camera/{ID}_0.jpg (HTTP·raw IP) → 혼합콘텐츠라
+// 직접 못 씀. /api/seacam Worker 프록시로 HTTPS 전달. 3초마다 갱신.
+// 출처: 해양수산부 연안포털 (coast.mof.go.kr)
 (function(){
-  var BASE='https://coast.mof.go.kr/proxy.jsp?http://10.176.62.134:9001/tilemapApi.do?url=http://220.95.232.18/camera/';
+  var BASE='/api/seacam?id=';
   // [camId, name, region(nav), admin1, lng, lat]
   var SEA=[
     // ── 강원 ──────────────────────────────────────────────────
@@ -1251,7 +1252,7 @@ function buildMarkers(feats){
     GJ.features.push({type:'Feature',geometry:{type:'Point',coordinates:[d[4],d[5]]},properties:{
       id:'sea_'+camId, name:d[1], region:d[2], admin1:d[3], city:d[2],
       centerName:'바다캠', dataSource:'바다캠',
-      streamUrl: BASE + camId + '_0.jpg',
+      streamUrl: BASE + camId,
       streamType:'image', source:'해양수산부연안포털',
       isWater:false, isActive:true
     }});
@@ -1584,12 +1585,12 @@ function playImageCam(url, ov, imgEl){
   ov.innerHTML='<div class="spin"></div><div>연결 중...</div>';
   imgEl.style.display='none';
 
-  // 타임스탬프 제거한 베이스 URL
-  const baseUrl=url.replace(/[?&]\d{10,}$/,'');
+  // 타임스탬프 제거한 베이스 URL (구 ?<ts> / 신 &t=<ts> 둘 다 처리)
+  const baseUrl=url.replace(/[?&]t=\d+$/,'').replace(/[?&]\d{10,}$/,'');
 
   function loadFrame(){
-    const src=baseUrl+'?'+Date.now();
-    imgEl.src=src;
+    const sep = baseUrl.indexOf('?')>=0 ? '&' : '?';
+    imgEl.src = baseUrl + sep + 't=' + Date.now();
   }
 
   imgEl.onload=function(){
