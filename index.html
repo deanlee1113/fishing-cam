@@ -95,6 +95,8 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
 .ntab.ht.active{color:#4fc3f7;border-bottom-color:#4fc3f7}
 .ntab.sea{color:#38bdf8}
 .ntab.sea.active{color:#38bdf8;border-bottom-color:#38bdf8}
+.ntab.tide{color:#a78bfa}
+.ntab.tide.active{color:#a78bfa;border-bottom-color:#a78bfa}
 .nsep{width:1px;height:16px;background:#2f3336;flex-shrink:0;margin:0 2px}
 .sub-group{display:flex;align-items:center;gap:0}
 #nav-visitor{
@@ -372,6 +374,183 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
 #fav-list{flex:1;overflow-y:auto;padding:6px}
 #fav-empty{padding:40px 14px;text-align:center;color:#536471;font-size:12px;line-height:1.6}
 
+/* ══ TIDE PANEL ══ */
+#tide-panel{
+  position:fixed;top:52px;right:0;bottom:0;z-index:925;
+  width:460px;max-width:100vw;
+  background:linear-gradient(180deg,#0a0b1f 0%,#0d0f11 30%);
+  border-left:1px solid #2f3336;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#tide-panel.open{transform:translateX(0)}
+#tide-hd{padding:14px 16px 10px;border-bottom:1px solid #1f2230;display:flex;align-items:center;justify-content:space-between}
+#tide-hd h3{font-size:15px;font-weight:700;color:#e7e9ea}
+#tide-hd-sub{font-size:11px;color:#71767b;margin-top:2px}
+#tide-hd-close{background:none;border:none;color:#71767b;cursor:pointer;font-size:22px;line-height:1;padding:4px 8px}
+#tide-tabs{
+  display:flex;gap:0;padding:0 8px;background:rgba(0,0,0,.3);
+  border-bottom:1px solid #1f2230;overflow-x:auto;scrollbar-width:none;
+}
+#tide-tabs::-webkit-scrollbar{display:none}
+.tt-tab{
+  flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;
+  color:#71767b;padding:10px 14px;font-size:13px;cursor:pointer;white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+.tt-tab:hover{color:#e7e9ea}
+.tt-tab.active{color:#a78bfa;border-bottom-color:#a78bfa;font-weight:600}
+#tide-body{flex:1;overflow-y:auto;padding:14px 16px;scrollbar-width:thin;scrollbar-color:#2f3336 transparent}
+#tide-body::-webkit-scrollbar{width:5px}
+#tide-body::-webkit-scrollbar-thumb{background:#2f3336;border-radius:2px}
+
+/* 오늘 카드 */
+.td-today-card{
+  background:linear-gradient(135deg,rgba(167,139,250,.15) 0%,rgba(56,189,248,.08) 100%);
+  border:1px solid #2f2950;border-radius:14px;padding:16px;margin-bottom:14px;
+}
+.td-date{font-size:12px;color:#a78bfa;margin-bottom:6px;letter-spacing:.5px}
+.td-mul-big{font-size:36px;font-weight:800;color:#fff;line-height:1.05;margin-bottom:4px}
+.td-mul-sub{font-size:12px;color:#9ca3af}
+.td-badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.td-bd{font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid #2f3336;color:#9ca3af}
+.td-bd.sari{border-color:#f4d03f;color:#f4d03f;background:rgba(244,208,63,.08)}
+.td-bd.jogeum{border-color:#536471;color:#9ca3af;background:rgba(83,100,113,.1)}
+.td-bd.good{border-color:#56d364;color:#56d364;background:rgba(86,211,100,.08)}
+.td-bd.bad{border-color:#f4212e;color:#f4212e;background:rgba(244,33,46,.08)}
+
+/* 섹션 */
+.td-sec{margin-bottom:18px}
+.td-sec-h{font-size:11px;color:#71767b;letter-spacing:1px;margin-bottom:8px;font-weight:600}
+.td-row{display:flex;justify-content:space-between;padding:8px 12px;background:#0d0f14;border:1px solid #1f2230;border-radius:8px;margin-bottom:5px;font-size:13px}
+.td-row .l{color:#9ca3af}.td-row .r{color:#e7e9ea;font-weight:600}
+
+/* 7일 캘린더 */
+.td-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.td-cal-cell{
+  background:#0d0f14;border:1px solid #1f2230;border-radius:8px;
+  padding:8px 4px;text-align:center;font-size:11px;
+}
+.td-cal-cell.today{border-color:#a78bfa;background:rgba(167,139,250,.08)}
+.td-cal-cell.sari{border-color:rgba(244,208,63,.4);background:rgba(244,208,63,.05)}
+.td-cal-day{font-size:10px;color:#71767b;margin-bottom:3px}
+.td-cal-date{font-size:14px;font-weight:700;color:#e7e9ea;margin-bottom:6px}
+.td-cal-mul{font-size:11px;color:#a78bfa;font-weight:600;line-height:1.2}
+.td-cal-cell.sari .td-cal-mul{color:#f4d03f}
+
+/* 어종 시즌 */
+.td-fish-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.td-fish-item{
+  background:#0d0f14;border:1px solid #1f2230;border-radius:10px;padding:10px 12px;
+}
+.td-fish-name{font-size:14px;font-weight:700;color:#e7e9ea;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.td-fish-name .ty{font-size:9px;padding:1px 6px;border-radius:8px;border:1px solid #2f3336;color:#71767b;font-weight:500}
+.td-fish-name .ty.fw{border-color:#4fc3f7;color:#4fc3f7}
+.td-fish-name .ty.sea{border-color:#38bdf8;color:#38bdf8}
+.td-fish-months{display:flex;gap:2px;margin-top:2px}
+.td-mo{flex:1;text-align:center;font-size:9px;padding:3px 0;background:#16181c;border-radius:3px;color:#536471}
+.td-mo.on{background:#a78bfa;color:#fff;font-weight:700}
+.td-mo.now{outline:1px solid #f4d03f;outline-offset:1px}
+
+/* 파고·수온 (마린) */
+.td-marine-region{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.td-mr-btn{
+  background:#16181c;border:1px solid #2f3336;color:#9ca3af;
+  padding:6px 12px;border-radius:14px;font-size:12px;cursor:pointer;transition:all .15s;
+}
+.td-mr-btn:hover{border-color:#a78bfa;color:#e7e9ea}
+.td-mr-btn.active{background:rgba(167,139,250,.15);border-color:#a78bfa;color:#a78bfa;font-weight:600}
+.td-marine-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.td-mg-cell{background:#0d0f14;border:1px solid #1f2230;border-radius:10px;padding:11px 12px}
+.td-mg-l{font-size:10px;color:#71767b;letter-spacing:.5px;margin-bottom:4px}
+.td-mg-v{font-size:20px;font-weight:700;color:#e7e9ea}
+.td-mg-u{font-size:11px;color:#71767b;margin-left:2px;font-weight:400}
+.td-empty{text-align:center;color:#536471;padding:30px 14px;font-size:12px;line-height:1.6}
+.td-loading{text-align:center;color:#71767b;padding:30px 14px;font-size:12px}
+
+/* 출처 라인 */
+.td-src{font-size:10px;color:#536471;margin-top:6px;line-height:1.5;border-top:1px dashed #1f2230;padding-top:6px}
+.td-src a{color:#a78bfa;text-decoration:none}
+.td-src a:hover{text-decoration:underline}
+
+/* 용어 툴팁 트리거 */
+.td-term{cursor:pointer;border-bottom:1px dotted #71767b;color:#a78bfa}
+.td-term:hover{color:#c4b5fd}
+.td-tt-ico{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 7px;border-radius:9px;
+  background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.4);
+  color:#a78bfa;font-size:10px;font-weight:600;
+  margin-left:5px;cursor:pointer;vertical-align:middle;
+  transition:all .15s;letter-spacing:.2px;line-height:1;
+  user-select:none;gap:3px;
+}
+.td-tt-ico:hover{background:rgba(167,139,250,.28);border-color:#a78bfa;color:#fff}
+.td-tt-ico:active{transform:scale(.95)}
+.td-tt-ico.mini{padding:0;width:18px;min-width:18px}
+
+/* 툴팁 팝오버 */
+#td-popover{
+  position:fixed;z-index:980;
+  background:#1a1d28;border:1px solid #2f2950;border-radius:10px;
+  padding:12px 14px;max-width:280px;font-size:12px;color:#e7e9ea;line-height:1.55;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  display:none;
+}
+#td-popover.show{display:block}
+#td-popover .pn{font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:5px}
+#td-popover .ps{font-size:10px;color:#71767b;margin-top:7px;border-top:1px dashed #2f3336;padding-top:5px}
+#td-pop-close{position:absolute;top:4px;right:8px;background:none;border:none;color:#71767b;cursor:pointer;font-size:16px;line-height:1}
+
+/* 권역 선택 */
+.td-region-pick{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.td-rp-btn{
+  background:#16181c;border:1px solid #2f3336;color:#9ca3af;
+  padding:7px 14px;border-radius:16px;font-size:12px;cursor:pointer;transition:all .15s;font-weight:500;
+}
+.td-rp-btn:hover{border-color:#a78bfa;color:#e7e9ea}
+.td-rp-btn.active{background:rgba(167,139,250,.15);border-color:#a78bfa;color:#a78bfa;font-weight:700}
+
+/* 경고/안내 박스 */
+.td-warn{background:rgba(244,208,63,.06);border:1px solid rgba(244,208,63,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#f4d03f;line-height:1.6;margin-bottom:14px}
+.td-warn b{color:#fff;font-weight:700}
+.td-info{background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#7dd3fc;line-height:1.6;margin-bottom:14px}
+.td-info b{color:#fff;font-weight:700}
+
+/* 조위관측소 선택 / 만조·간조 표시 */
+.td-station-pick{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.td-sp-btn{font-size:11px;padding:5px 10px;background:#0d0f14;border:1px solid #1f2230;border-radius:14px;color:#9ca3af;cursor:pointer;transition:all .15s}
+.td-sp-btn:hover{border-color:#a78bfa;color:#e7e9ea}
+.td-sp-btn.active{background:rgba(167,139,250,.15);border-color:#a78bfa;color:#a78bfa;font-weight:600}
+.td-tide-meta{font-size:11px;color:#71767b;margin-bottom:8px;padding:0 2px}
+.td-tide-meta b{color:#e7e9ea}
+.td-tide-type{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-right:6px;letter-spacing:.5px;vertical-align:1px}
+.td-tide-type.high{background:rgba(244,33,46,.12);color:#f4212e;border:1px solid rgba(244,33,46,.3)}
+.td-tide-type.low{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.3)}
+.td-date-nav{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.td-dn-btn{background:#0d0f14;border:1px solid #2f3336;color:#9ca3af;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;transition:all .15s;min-width:32px}
+.td-dn-btn:hover:not(:disabled){border-color:#a78bfa;color:#a78bfa}
+.td-dn-btn:disabled{opacity:.35;cursor:not-allowed}
+.td-dn-btn.today{font-weight:600;color:#a78bfa;border-color:#a78bfa;background:rgba(167,139,250,.12)}
+.td-date-input{flex:1;min-width:130px;background:#0d0f14;border:1px solid #2f3336;color:#e7e9ea;border-radius:8px;padding:5px 9px;font-size:12px;color-scheme:dark}
+.td-date-input:focus{outline:none;border-color:#a78bfa}
+
+/* 모바일 */
+@media (max-width:768px){
+  #tide-panel{
+    top:auto;bottom:0;left:0;right:0;width:100%;
+    height:0;max-height:90svh;
+    transform:none;
+    border-radius:16px 16px 0 0;
+    border-left:none;border-top:1px solid #2f3336;
+    transition:height .3s cubic-bezier(.4,0,.2,1);
+  }
+  #tide-panel.open{height:88svh}
+  #tide-body::before{content:'';display:block;width:36px;height:4px;background:#2f3336;border-radius:2px;margin:-2px auto 10px}
+  .td-marine-grid{grid-template-columns:1fr 1fr}
+  .td-cal-grid{grid-template-columns:repeat(4,1fr)}
+}
+
 /* ══ LEAFLET ══ */
 .leaflet-container{background:#0d1117}
 .leaflet-control-zoom a{background:#16181c!important;color:#e7e9ea!important;border-color:#2f3336!important}
@@ -480,6 +659,8 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
     <button class="ntab" data-cat="traffic" data-f="traffic">🚦 교통</button>
     <div class="nsep"></div>
     <button class="ntab" data-cat="region" data-f="region-all">📍 지역별</button>
+    <div class="nsep"></div>
+    <button class="ntab tide" id="btn-tide-open">🌊 물때표</button>
     <div id="nav-visitor">오늘 — 명</div>
   </div>
   <!-- Row 2: 서브 필터 (선택된 카테고리에 따라 표시) -->
@@ -688,6 +869,32 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
 <div id="fav-panel">
   <div id="fav-hd"><h3>♥ 즐겨찾기</h3><button id="fav-hd-close">×</button></div>
   <div id="fav-list"><div id="fav-empty">즐겨찾기한 CCTV가 없어요.<br>핀 클릭 후 ♡ 버튼으로 추가.</div></div>
+</div>
+
+<!-- Tide Panel -->
+<div id="tide-panel">
+  <div id="tide-hd">
+    <div>
+      <h3>🌊 물때표</h3>
+      <div id="tide-hd-sub">서해 · 남해 · 동해 · 제주 권역별 안내</div>
+    </div>
+    <button id="tide-hd-close">×</button>
+  </div>
+  <div id="tide-tabs">
+    <button class="tt-tab active" data-tt="today">오늘</button>
+    <button class="tt-tab" data-tt="week">7일 캘린더</button>
+    <button class="tt-tab" data-tt="marine">파고·수온</button>
+    <button class="tt-tab" data-tt="fish">어종 시즌</button>
+  </div>
+  <div id="tide-body"></div>
+</div>
+
+<!-- Term Popover -->
+<div id="td-popover" role="dialog">
+  <button id="td-pop-close" aria-label="닫기">×</button>
+  <div class="pn" id="td-pop-name"></div>
+  <div id="td-pop-def"></div>
+  <div class="ps" id="td-pop-src"></div>
 </div>
 
 <!-- Firebase -->
@@ -1820,6 +2027,495 @@ document.getElementById('chat-close-btn').addEventListener('click',()=>{
   document.getElementById('chat-panel').classList.remove('open');
   document.getElementById('chat-toggle-btn').classList.remove('active-chat');
 });
+
+// ═══ TIDE PANEL ═══════════════════════════════════════════════
+// ── 음력 변환 ──
+// 출처: 한국천문연구원(KASI) 평균 삭망주기 29.530588일 기준 자체계산.
+//       기준 신월(2026-04-16 19:51 UTC, 음력 3월 1일) 전후 ±1일 오차 가능.
+//       정확한 음력은 KASI 천문우주지식정보(astro.kasi.re.kr) 참조.
+const MOON_REF = Date.UTC(2026,3,16, 19,51);
+const SYNODIC = 29.530588;
+function getLunarDay(date){
+  const ms = date.getTime() - MOON_REF;
+  let age = (ms/86400000) % SYNODIC;
+  if(age<0) age += SYNODIC;
+  return Math.floor(age) + 1;
+}
+// 물때 명칭 — 출처: 전통 어업용어 서해식 표준 (음력 1일=7물 기준)
+const MUL_NAMES = {
+  1:'1물',2:'2물',3:'3물',4:'4물',5:'5물',6:'6물',
+  7:'7물',8:'한사리',9:'9물',10:'10물',11:'11물',12:'12물',13:'13물',14:'조금',15:'무시'
+};
+function getMulddae(lunarDay){
+  const d15 = lunarDay>15 ? lunarDay-15 : lunarDay;
+  const num = ((d15-1+6)%15) + 1;
+  return {
+    num, name: MUL_NAMES[num],
+    sari: num===8 || num===7,
+    jogeum: num===14 || num===15,
+  };
+}
+
+// ── 용어 사전 ──
+// 출처는 각 항목에 명시
+const TERMS = {
+  '한사리':{n:'한사리',d:'사리 중에서도 조차가 가장 큰 시기. 보통 음력 1일·15일 전후. 조류 가장 강함.',s:'전통 어업 용어'},
+  '사리':{n:'사리 (Spring tide)',d:'그믐(음력 1일)·보름(15일) 무렵 달과 태양의 인력이 합쳐져 조차가 큰 시기. 반대 개념: 조금(Neap tide).',s:'일반 해양학 / 국립해양조사원 자료'},
+  '조금':{n:'조금 (Neap tide)',d:'음력 8일·23일 무렵, 달과 태양 인력이 직각으로 작용해 조차가 가장 작은 시기. 조류 약함.',s:'일반 해양학 / 국립해양조사원 자료'},
+  '무시':{n:'무시',d:'조금 다음날(음력 9일·24일 전후) 조류가 거의 정지하는 시기. 낚시 가장 부진한 시기로 분류.',s:'전통 어업 용어'},
+  '물때':{n:'물때',d:'음력 일자에 따른 조류 흐름 강약을 1~15단계로 나눈 전통 분류. 본 페이지는 서해식(음력 1일=7물)으로 계산. 지역에 따라 명칭·번호 차이 존재.',s:'전통 어업 용어'},
+  '파주기':{n:'파주기 (Wave Period)',d:'파도 한 개가 지나가는 데 걸리는 시간(초). 길수록 부드러운 너울성, 짧을수록 거친 단주기 파도.',s:'기상청 해상예보 용어'},
+  '파고':{n:'파고 (Wave Height)',d:'파도 마루~골 사이 높이(미터). 일반적으로 1m 이하 출조가능, 1.5~2m 주의, 2m 이상 출조 자제.',s:'기상청 해상예보 / 한국해양수산연수원 일반 안전기준'},
+  '조차':{n:'조차 (Tidal Range)',d:'만조와 간조의 수위 차이.',s:'국립해양조사원 평균조위 자료'},
+};
+
+// ── 권역 정보 ──
+// 조차 수치 출처: 국립해양조사원(KHOA) 평균조위 자료
+const REGIONS = {
+  west:{name:'서해',tidalRange:'4~9m',mulApplies:true,
+    note:'<b>조차 4~9m로 물때 영향이 매우 큼.</b> 만조/간조 차이가 커 물때에 따라 어종 활성도가 크게 달라짐. 전통 서해식 물때 분류가 가장 잘 맞는 권역.'},
+  south:{name:'남해',tidalRange:'2~4m',mulApplies:true,
+    note:'<b>조차 2~4m.</b> 서해식 물때 분류 적용 가능하나 지역에 따라 1일 편차 발생. 갯바위 낚시에서 영향 큼.'},
+  east:{name:'동해',tidalRange:'0.2~0.4m',mulApplies:false,
+    note:'<b>조차 약 20~40cm로 물때 영향 미미.</b> 동해권 출조는 물때보다 파고·수온·새벽 시간이 핵심. 본 페이지의 물때 정보는 참고용으로만 표시.'},
+  jeju:{name:'제주',tidalRange:'약 2m',mulApplies:true,
+    note:'<b>조차 약 2m.</b> 남해 패턴과 유사하나 외해 특성상 너울이 강함. 물때 + 파고 동시 고려 필요.'}
+};
+let tideRegion = 'west';
+// 물때표가 표시할 날짜 (낚시 가는 날 선택용). 기본 = 오늘(KST)
+let tideSelectedDate = new Date();
+function tideKstDash(d){ return d.toLocaleDateString('sv-SE', {timeZone:'Asia/Seoul'}); } // YYYY-MM-DD
+function tideIsToday(d){ return tideKstDash(d) === tideKstDash(new Date()); }
+function tideShiftDate(days){
+  const d = new Date(tideSelectedDate);
+  d.setDate(d.getDate() + days);
+  tideSelectedDate = d;
+}
+
+// ── 마린 지역 프리셋 ──
+// 출처: 해양수산부 권역 분류 기준 대표 해안 지점
+const MARINE_REGIONS = [
+  {n:'동해 강원',lat:37.75,lon:128.90},
+  {n:'동해 경북',lat:36.05,lon:129.40},
+  {n:'동해 부산',lat:35.15,lon:129.16},
+  {n:'남해 거제',lat:34.87,lon:128.62},
+  {n:'남해 여수',lat:34.74,lon:127.74},
+  {n:'서해 태안',lat:36.74,lon:126.30},
+  {n:'서해 인천',lat:37.45,lon:126.40},
+  {n:'제주',lat:33.45,lon:126.55},
+];
+let marineSel = 0;
+const marineCache = {};
+
+// ── KHOA 조위관측소 ──
+// 출처: 국립해양조사원(KHOA) 조석예보 (data.go.kr 1192136)
+// obsCode↔관측소명은 실제 API 응답으로 검증(2026-05-18). 권역 분류는 출조 기준.
+const KHOA_STATIONS = {
+  west:  [
+    {code:'DT_0001', name:'인천'},
+    {code:'DT_0067', name:'안흥'},
+    {code:'DT_0050', name:'태안'},
+    {code:'DT_0017', name:'대산'},
+    {code:'DT_0024', name:'장항'},
+    {code:'DT_0018', name:'군산'},
+    {code:'DT_0037', name:'어청도'},
+    {code:'DT_0003', name:'영광'},
+    {code:'DT_0035', name:'흑산도'},
+    {code:'DT_0028', name:'진도'},
+  ],
+  south: [
+    {code:'DT_0016', name:'여수'},
+    {code:'DT_0031', name:'거문도'},
+    {code:'DT_0026', name:'고흥발포'},
+    {code:'DT_0061', name:'삼천포'},
+    {code:'DT_0014', name:'통영'},
+    {code:'DT_0029', name:'거제도'},
+    {code:'DT_0062', name:'마산'},
+    {code:'DT_0063', name:'가덕도'},
+    {code:'DT_0005', name:'부산'},
+  ],
+  east:  [
+    {code:'DT_0057', name:'동해항'},
+    {code:'DT_0006', name:'묵호'},
+    {code:'DT_0012', name:'속초'},
+    {code:'DT_0011', name:'후포'},
+    {code:'DT_0013', name:'울릉도'},
+    {code:'DT_0040', name:'독도'},
+  ],
+  jeju:  [
+    {code:'DT_0010', name:'서귀포'},
+    {code:'DT_0022', name:'성산포'},
+    {code:'DT_0021', name:'추자도'},
+  ],
+};
+const tideStationSel = { west:'DT_0001', south:'DT_0016', east:'DT_0012', jeju:'DT_0010' };
+const tideCache = {};
+
+function tideKstYmd(d){
+  return d.toLocaleDateString('sv-SE', {timeZone:'Asia/Seoul'}).replace(/-/g,'');
+}
+async function fetchTide(station, date){
+  const key = station + '|' + date;
+  if(tideCache[key]) return tideCache[key];
+  const res = await fetch(`/api/tide?station=${encodeURIComponent(station)}&date=${encodeURIComponent(date)}`);
+  if(!res.ok){
+    let msg = `HTTP ${res.status}`;
+    try{ const e = await res.json(); if(e?.error) msg = e.error; }catch{}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  tideCache[key] = data;
+  return data;
+}
+function renderStationPicker(){
+  const list = KHOA_STATIONS[tideRegion] || [];
+  const sel = tideStationSel[tideRegion];
+  return list.map(s=>`<button class="td-sp-btn ${s.code===sel?'active':''}" data-station="${s.code}">${s.name}</button>`).join('');
+}
+function bindStationPicker(){
+  document.querySelectorAll('#tide-body .td-sp-btn[data-station]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      tideStationSel[tideRegion] = b.dataset.station;
+      document.querySelectorAll('#tide-body .td-sp-btn[data-station]').forEach(x=>x.classList.toggle('active', x===b));
+      renderTideRealtime();
+    });
+  });
+}
+async function renderTideRealtime(){
+  const box = document.getElementById('td-realtime');
+  if(!box) return;
+  const station = tideStationSel[tideRegion];
+  const list = KHOA_STATIONS[tideRegion] || [];
+  const stationName = list.find(s=>s.code===station)?.name || station;
+  const ymd = tideKstYmd(tideSelectedDate);
+  box.innerHTML = `<div class="td-loading">${stationName} 조석 예보 불러오는 중...</div>`;
+  try{
+    const data = await fetchTide(station, ymd);
+    const items = data.items || [];
+    if(!items.length){
+      box.innerHTML = `<div class="td-empty">예보 데이터가 없습니다.<br>다른 관측소를 선택해보세요.</div>`;
+      return;
+    }
+    const rows = items.map(it=>`
+      <div class="td-row">
+        <span class="l"><span class="td-tide-type ${it.type==='만조'?'high':'low'}">${it.type||'—'}</span>${it.time||'—'}</span>
+        <span class="r">${it.levelCm!=null?Math.round(it.levelCm)+' cm':'—'}</span>
+      </div>`).join('');
+    const dateLabel = `${ymd.slice(0,4)}-${ymd.slice(4,6)}-${ymd.slice(6,8)}`;
+    box.innerHTML = `
+      <div class="td-tide-meta">관측소 <b>${data.station||stationName}</b> · ${dateLabel}</div>
+      ${rows}`;
+  }catch(e){
+    const isKeyMissing = /KHOA_API_KEY/.test(e.message);
+    box.innerHTML = `
+      <div class="td-warn" style="margin-bottom:8px">
+        ${isKeyMissing
+          ? '<b>API 키 발급 대기중</b><br>data.go.kr 조석예보(15038991) 활용신청 후 GitHub Secrets · Cloudflare Pages 환경변수에 <code>KHOA_API_KEY</code>를 등록하면 자동 표시됩니다. (SETUP.md 참고)'
+          : '<b>조석 데이터 조회 실패</b><br>'+e.message}
+      </div>
+      <a href="https://www.khoa.go.kr/swtc/main.do" target="_blank" class="td-row" style="text-decoration:none;color:inherit">
+        <span class="l">국립해양조사원 (KHOA) 조위관측소에서 직접 조회</span><span class="r" style="color:#a78bfa">→</span>
+      </a>`;
+  }
+}
+
+async function loadMarine(idx){
+  marineSel = idx;
+  document.querySelectorAll('.td-mr-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  const grid = document.getElementById('td-marine-grid');
+  if(!grid) return;
+  if(marineCache[idx]){renderMarine(marineCache[idx]);return;}
+  grid.innerHTML = '<div class="td-loading">파고·수온 불러오는 중...</div>';
+  const r = MARINE_REGIONS[idx];
+  try{
+    const u = `https://marine-api.open-meteo.com/v1/marine?latitude=${r.lat}&longitude=${r.lon}`
+      +`&current=wave_height,wave_period,wave_direction,sea_surface_temperature`
+      +`&timezone=Asia%2FSeoul`;
+    const res = await fetch(u);
+    const data = await res.json();
+    marineCache[idx] = data;
+    renderMarine(data);
+  }catch(e){
+    grid.innerHTML = '<div class="td-empty">데이터를 불러올 수 없습니다.<br>잠시 후 다시 시도해주세요.</div>';
+  }
+}
+// 파고 출조 등급 — 출처: 기상청 해상예보 단계 / 한국해양수산연수원 일반 안전기준
+function waveGrade(h){
+  if(h==null) return {t:'—',c:''};
+  if(h < 0.5) return {t:'🟢 매우 양호',c:'good'};
+  if(h < 1.0) return {t:'🟢 출조 양호',c:'good'};
+  if(h < 1.5) return {t:'🟡 주의',c:''};
+  if(h < 2.0) return {t:'🟡 위험 주의',c:''};
+  return {t:'🔴 출조 자제',c:'bad'};
+}
+function renderMarine(data){
+  const grid = document.getElementById('td-marine-grid');
+  if(!grid || !data?.current) return;
+  const c = data.current;
+  const dirKor = (d)=>{if(d==null)return'—';return['북','북북동','북동','동북동','동','동남동','남동','남남동','남','남남서','남서','서남서','서','서북서','북서','북북서'][Math.round(d/22.5)%16]};
+  const wg = waveGrade(c.wave_height);
+  grid.innerHTML = `
+    <div class="td-mg-cell"><div class="td-mg-l">파고 <span class="td-tt-ico mini" data-term="파고" title="용어 설명">ⓘ</span></div><div class="td-mg-v">${(c.wave_height??0).toFixed(2)}<span class="td-mg-u">m</span></div><div style="font-size:11px;margin-top:4px;color:${wg.c==='good'?'#56d364':wg.c==='bad'?'#f4212e':'#e3b341'}">${wg.t}</div></div>
+    <div class="td-mg-cell"><div class="td-mg-l">파주기 <span class="td-tt-ico mini" data-term="파주기" title="용어 설명">ⓘ</span></div><div class="td-mg-v">${(c.wave_period??0).toFixed(1)}<span class="td-mg-u">초</span></div></div>
+    <div class="td-mg-cell"><div class="td-mg-l">파도 방향</div><div class="td-mg-v" style="font-size:18px">${dirKor(c.wave_direction)}</div></div>
+    <div class="td-mg-cell"><div class="td-mg-l">수온</div><div class="td-mg-v">${(c.sea_surface_temperature??0).toFixed(1)}<span class="td-mg-u">°C</span></div></div>
+  `;
+  bindTerms(grid);
+}
+
+// ── 권역 선택기 (오늘·7일 탭) ──
+function renderRegionPicker(){
+  return `<div class="td-region-pick">
+    ${Object.entries(REGIONS).map(([k,r])=>`<button class="td-rp-btn ${k===tideRegion?'active':''}" data-region="${k}">${r.name}</button>`).join('')}
+  </div>`;
+}
+function bindRegionPicker(){
+  document.querySelectorAll('#tide-body [data-region]').forEach(b=>{
+    b.addEventListener('click',()=>{tideRegion=b.dataset.region;renderTide();});
+  });
+}
+
+// ── 용어 툴팁 ──
+function bindTerms(container){
+  if(!container) return;
+  container.querySelectorAll('[data-term]').forEach(el=>{
+    el.onclick = (e)=>{
+      e.stopPropagation();
+      const t = TERMS[el.dataset.term];
+      if(!t) return;
+      document.getElementById('td-pop-name').textContent = t.n;
+      document.getElementById('td-pop-def').textContent = t.d;
+      document.getElementById('td-pop-src').innerHTML = '<b>출처</b> · '+t.s;
+      const pop = document.getElementById('td-popover');
+      pop.classList.add('show');
+      const r = el.getBoundingClientRect();
+      const popW = 280;
+      let left = r.left + r.width/2 - popW/2;
+      let top = r.bottom + 8;
+      if(left < 8) left = 8;
+      if(left + popW > innerWidth - 8) left = innerWidth - popW - 8;
+      if(top + 200 > innerHeight) top = r.top - 200;
+      pop.style.left = left+'px';
+      pop.style.top = top+'px';
+    };
+  });
+}
+document.getElementById('td-pop-close').addEventListener('click',()=>document.getElementById('td-popover').classList.remove('show'));
+document.addEventListener('click',(e)=>{
+  if(!e.target.closest('#td-popover') && !e.target.closest('[data-term]')){
+    document.getElementById('td-popover').classList.remove('show');
+  }
+});
+
+// ── 렌더링: 오늘 ──
+function renderTideToday(){
+  const now = tideSelectedDate;
+  const ld = getLunarDay(now);
+  const mul = getMulddae(ld);
+  const reg = REGIONS[tideRegion];
+  const dateStr = now.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  const termKey = mul.name==='한사리'?'한사리':(mul.name==='조금'?'조금':(mul.name==='무시'?'무시':'물때'));
+  const isToday = tideIsToday(now);
+  const dashVal = tideKstDash(now);
+  const todayDash = tideKstDash(new Date());
+  const maxD = new Date(); maxD.setFullYear(maxD.getFullYear()+1);
+  const maxDash = tideKstDash(maxD);
+
+  document.getElementById('tide-body').innerHTML = `
+    ${renderRegionPicker()}
+
+    <div class="${reg.mulApplies?'td-info':'td-warn'}">
+      <b>${reg.name} (조차 ${reg.tidalRange}) <span class="td-tt-ico" data-term="조차" title="용어 설명">ⓘ 용어</span></b><br>
+      ${reg.note}
+    </div>
+
+    <div class="td-today-card">
+      <div class="td-date-nav">
+        <button class="td-dn-btn" data-dnav="prev" ${isToday?'disabled':''} title="이전 날">◀</button>
+        <input type="date" class="td-date-input" id="td-date-input" value="${dashVal}" min="${todayDash}" max="${maxDash}">
+        <button class="td-dn-btn" data-dnav="next" title="다음 날">▶</button>
+        ${isToday?'':'<button class="td-dn-btn today" data-dnav="today">오늘로</button>'}
+      </div>
+      <div class="td-date">${dateStr} · 음력 ${ld}일 (자체계산 ±1일)${isToday?' · <b style="color:#a78bfa">오늘</b>':''}</div>
+      <div class="td-mul-big">${mul.name}<span class="td-tt-ico" data-term="${termKey}" title="용어 설명" style="font-size:11px">ⓘ 용어</span></div>
+      <div class="td-mul-sub">${mul.num}물 · ${reg.mulApplies?'서해식 적용 (음력 1일=7물)':'동해는 물때 영향 미미 — 참고용'}</div>
+      <div class="td-badges">
+        ${mul.sari?'<span class="td-bd sari">사리물때 <span class="td-tt-ico mini" data-term="사리" title="용어 설명">ⓘ</span></span>':''}
+        ${mul.jogeum?'<span class="td-bd jogeum">조금물때 <span class="td-tt-ico mini" data-term="조금" title="용어 설명">ⓘ</span></span>':''}
+      </div>
+    </div>
+
+    <div class="td-sec">
+      <div class="td-sec-h">관측소별 만조 · 간조 (${isToday?'오늘':dashVal})</div>
+      <div class="td-station-pick">${renderStationPicker()}</div>
+      <div id="td-realtime"><div class="td-loading">조석 예보 불러오는 중...</div></div>
+      <div class="td-src">
+        <b>출처</b><br>
+        · 음력일자 : 한국천문연구원(KASI) 평균 삭망주기 29.530588일 기준 자체계산. 기준 신월 2026-04-16. <b>±1일 오차 가능</b>.<br>
+        · 물때 명칭·번호 : 전통 서해식 분류 (음력 1일=7물).<br>
+        · 만조/간조 시각·조위 : <a href="https://www.khoa.go.kr/" target="_blank">국립해양조사원(KHOA)</a> 조석예보 (data.go.kr 15038991, 공공누리 1유형)
+      </div>
+    </div>
+  `;
+  bindTerms(document.getElementById('tide-body'));
+  bindRegionPicker();
+  bindStationPicker();
+  bindTideDateNav();
+  renderTideRealtime();
+}
+function bindTideDateNav(){
+  const inp = document.getElementById('td-date-input');
+  if(inp) inp.addEventListener('change', ()=>{
+    if(!inp.value) return;
+    const [y,m,d] = inp.value.split('-').map(Number);
+    tideSelectedDate = new Date(y, m-1, d, 12, 0, 0); // 정오 고정으로 TZ 경계 회피
+    renderTide();
+  });
+  document.querySelectorAll('#tide-body .td-dn-btn[data-dnav]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const a = b.dataset.dnav;
+      if(a==='today') tideSelectedDate = new Date();
+      else if(a==='prev') tideShiftDate(-1);
+      else if(a==='next') tideShiftDate(1);
+      renderTide();
+    });
+  });
+}
+
+// ── 렌더링: 7일 캘린더 ──
+function renderTideWeek(){
+  const days = ['일','월','화','수','목','금','토'];
+  const reg = REGIONS[tideRegion];
+  let html = renderRegionPicker();
+  if(!reg.mulApplies){
+    html += `<div class="td-warn"><b>${reg.name}</b> · ${reg.note}</div>`;
+  }
+  html += '<div class="td-cal-grid">';
+  const now = new Date();
+  for(let i=0;i<14;i++){
+    const d = new Date(now.getTime() + i*86400000);
+    const ld = getLunarDay(d);
+    const mul = getMulddae(ld);
+    const cls = (i===0?'today':'') + (mul.sari?' sari':'');
+    html += `<div class="td-cal-cell ${cls}">
+      <div class="td-cal-day">${days[d.getDay()]}</div>
+      <div class="td-cal-date">${d.getDate()}</div>
+      <div class="td-cal-mul">${mul.name}</div>
+      <div style="font-size:9px;color:#536471;margin-top:3px">음 ${ld}</div>
+    </div>`;
+  }
+  html += '</div>';
+  html += '<div style="font-size:11px;color:#71767b;margin-top:14px;line-height:1.6">노란 테두리: 사리 · 보라 테두리: 오늘</div>';
+  html += `<div class="td-src">
+    <b>출처</b><br>
+    · 음력일자 : KASI 평균 삭망주기 자체계산 (±1일 가능)<br>
+    · 물때 : 전통 서해식 (음력 1일=7물)<br>
+    · 권역별 조차 영향도 : <a href="https://www.khoa.go.kr/" target="_blank">국립해양조사원</a> 평균조위 자료
+  </div>`;
+  document.getElementById('tide-body').innerHTML = html;
+  bindRegionPicker();
+  bindTerms(document.getElementById('tide-body'));
+}
+
+// ── 렌더링: 파고·수온 ──
+function renderTideMarine(){
+  document.getElementById('tide-body').innerHTML = `
+    <div class="td-info">
+      <b>실시간 파고 · 파주기 · 수온 · 풍향</b><br>
+      Open-Meteo Marine 공공 API (ECMWF 모델) · 권역 대표 8개 지점
+    </div>
+    <div class="td-sec">
+      <div class="td-sec-h">지역 선택</div>
+      <div class="td-marine-region">
+        ${MARINE_REGIONS.map((r,i)=>`<button class="td-mr-btn ${i===marineSel?'active':''}" onclick="loadMarine(${i})">${r.n}</button>`).join('')}
+      </div>
+    </div>
+    <div class="td-sec">
+      <div class="td-sec-h">현재 해양 정보</div>
+      <div class="td-marine-grid" id="td-marine-grid">
+        <div class="td-loading">파고·수온 불러오는 중...</div>
+      </div>
+      <div class="td-src">
+        <b>출처</b><br>
+        · 파고/파주기/파향/수온 : <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank">Open-Meteo Marine API</a> (CC BY 4.0 · 무료) · ECMWF 기상모델 기반 예보값<br>
+        · 출조 등급 (🟢🟡🔴) : 기상청 해상예보 단계 + 한국해양수산연수원 일반 안전기준 참고<br>
+        · 실측 자료 : <a href="https://www.weather.go.kr/w/ocean/marine/forecast-area.do" target="_blank">기상청 해양기상</a> · <a href="https://www.khoa.go.kr/swtc/main.do" target="_blank">KHOA 조위관측</a> 권장
+      </div>
+    </div>
+  `;
+  loadMarine(marineSel);
+}
+
+// ── 렌더링: 어종 시즌 (참고용) ──
+// 출처: 일반 어업 통념 · 권역별 대표 어종 목록만 표시 (정확한 시기는 공식자료 권장)
+const FISH_BY = {
+  west:['감성돔','농어','광어(넙치)','우럭','주꾸미','갑오징어','망둥어','숭어','학공치'],
+  south:['감성돔','농어','벵에돔','참돔','갈치','고등어','삼치','갑오징어','학꽁치','전갱이'],
+  east:['광어(넙치)','우럭','노래미','도다리','가자미','농어','임연수','방어','쥐노래미','대구'],
+  jeju:['벵에돔','감성돔','참돔','자바리(다금바리)','갈치','돌돔','부시리','자리돔'],
+  fresh:['배스','쏘가리','끄리','붕어','잉어','송어','산천어','피라미','꺽지','메기']
+};
+const FISH_REG_LABEL = {west:'서해',south:'남해',east:'동해',jeju:'제주',fresh:'민물'};
+function renderTideFish(){
+  const cur = tideRegion in FISH_BY ? tideRegion : 'west';
+  let html = `
+    <div class="td-warn">
+      <b>참고용 자료입니다</b><br>
+      어종별 출현·호황 시기는 매년 기상·해류·지역에 따라 변동됩니다. 본 목록은 일반 어업 통념을 권역별로 정리한 것이며, 출조 결정 시에는 <u>현지 어업인·낚시점·실시간 조황</u>을 함께 확인하세요.
+    </div>
+    <div class="td-region-pick">
+      ${Object.keys(FISH_BY).map(k=>`<button class="td-rp-btn ${k===cur?'active':''}" data-fr="${k}">${FISH_REG_LABEL[k]}</button>`).join('')}
+    </div>
+    <div class="td-sec">
+      <div class="td-sec-h">${FISH_REG_LABEL[cur]} 권역 주요 어종</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+        ${FISH_BY[cur].map(f=>`<span class="td-bd" style="font-size:12px;padding:5px 11px">${f}</span>`).join('')}
+      </div>
+    </div>
+    <div class="td-sec">
+      <div class="td-sec-h">정확한 어종 정보 · 공식자료</div>
+      <a href="https://www.fips.go.kr/p/S010101/" target="_blank" class="td-row" style="text-decoration:none;color:inherit">
+        <span class="l">수산정보포털 (해양수산부)</span><span class="r" style="color:#a78bfa">→</span>
+      </a>
+      <a href="https://www.nifs.go.kr/" target="_blank" class="td-row" style="text-decoration:none;color:inherit">
+        <span class="l">국립수산과학원 (NIFS)</span><span class="r" style="color:#a78bfa">→</span>
+      </a>
+      <a href="https://www.badatime.com/c-2.html" target="_blank" class="td-row" style="text-decoration:none;color:inherit">
+        <span class="l">바다타임 어종별 조황 (민간)</span><span class="r" style="color:#a78bfa">→</span>
+      </a>
+      <div class="td-src">
+        <b>출처</b><br>
+        · 권역별 주요 어종 목록 : 일반 어업 통념 정리 (<b>참고용</b>) — 정확한 시기·해역은 공식자료로 검증 필요<br>
+        · 공식 어종 자료 : 해양수산부 수산정보포털 (fips.go.kr), 국립수산과학원 (nifs.go.kr)
+      </div>
+    </div>
+  `;
+  document.getElementById('tide-body').innerHTML = html;
+  document.querySelectorAll('[data-fr]').forEach(b=>b.addEventListener('click',()=>{tideRegion=b.dataset.fr;renderTideFish();}));
+}
+
+const TIDE_RENDERS = {today:renderTideToday,week:renderTideWeek,marine:renderTideMarine,fish:renderTideFish};
+let tideTab = 'today';
+function renderTide(){
+  document.querySelectorAll('.tt-tab').forEach(t=>t.classList.toggle('active',t.dataset.tt===tideTab));
+  (TIDE_RENDERS[tideTab]||renderTideToday)();
+}
+function openTide(){
+  document.getElementById('tide-panel').classList.add('open');
+  document.getElementById('btn-tide-open').classList.add('active');
+  renderTide();
+}
+function closeTide(){
+  document.getElementById('tide-panel').classList.remove('open');
+  document.getElementById('btn-tide-open').classList.remove('active');
+  document.getElementById('td-popover').classList.remove('show');
+}
+document.getElementById('btn-tide-open').addEventListener('click',openTide);
+document.getElementById('tide-hd-close').addEventListener('click',closeTide);
+document.querySelectorAll('.tt-tab').forEach(t=>t.addEventListener('click',()=>{tideTab=t.dataset.tt;renderTide();}));
+document.querySelectorAll('#nav-row1 .ntab[data-cat]').forEach(b=>b.addEventListener('click',closeTide));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeTide();}});
+window.loadMarine = loadMarine;
 
 // ═══ INIT ══════════════════════════════════════════════════════
 updateFavBadge();

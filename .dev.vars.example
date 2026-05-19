@@ -1,0 +1,5 @@
+# 로컬 테스트용 템플릿. 이 파일을 복사해 ".dev.vars" 로 만들고 실제 키를 채운다.
+#   cp .dev.vars.example .dev.vars
+# .dev.vars 는 .gitignore 에 의해 git/배포에 안 올라감. 실제 운영 키는
+# Cloudflare 대시보드 "변수 및 암호"에 별도 등록한다.
+KHOA_API_KEY=여기에_data.go.kr_조석예보_인증키
