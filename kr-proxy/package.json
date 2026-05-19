@@ -1,0 +1,12 @@
+{
+  "name": "fishing-kr-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seoul-region relay for coast.mof bada-cam (KR-IP only)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

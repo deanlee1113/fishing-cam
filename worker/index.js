@@ -16,6 +16,11 @@ export default {
       return handleWind(request, env, ctx);
     }
 
+    if (url.pathname === "/api/seacam") {
+      const { handleSeacam } = await import("./api/seacam.js");
+      return handleSeacam(request, env, ctx);
+    }
+
     // 추후 동일 패턴으로 추가 예정:
     // if (url.pathname === "/api/marine")  { ... }
     // if (url.pathname === "/api/weather") { ... }
