@@ -11,6 +11,11 @@ export default {
       return handleTide(request, env, ctx);
     }
 
+    if (url.pathname === "/api/wind") {
+      const { handleWind } = await import("./api/wind.js");
+      return handleWind(request, env, ctx);
+    }
+
     // 추후 동일 패턴으로 추가 예정:
     // if (url.pathname === "/api/marine")  { ... }
     // if (url.pathname === "/api/weather") { ... }
