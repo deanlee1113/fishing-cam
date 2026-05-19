@@ -121,17 +121,19 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
 .leg-r{display:flex;align-items:center;gap:6px}
 .leg-d{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .leg-d.ring{background:transparent;border:2px solid #4fc3f7}
-#wind-toggle{
-  position:absolute;top:12px;right:12px;z-index:401;
-  background:rgba(0,0,0,0.78);border:1px solid #2f3336;border-radius:8px;
-  padding:7px 12px;font-size:12px;color:#e7e9ea;cursor:pointer;
-  display:flex;align-items:center;gap:6px;transition:all .15s;font-weight:600;
+.leaflet-sat-btn.wind-active{border-color:#38bdf8;color:#38bdf8;background:#0c1f2e}
+.leaflet-sat-btn.wind-loading{opacity:.6;cursor:progress}
+/* 바람 시간 슬라이더 */
+#wind-time{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:24px;z-index:402;
+  background:rgba(0,0,0,0.82);border:1px solid #2f3336;border-radius:10px;
+  padding:8px 14px;display:none;align-items:center;gap:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
 }
-#wind-toggle:hover{border-color:#38bdf8;color:#38bdf8}
-#wind-toggle.on{border-color:#38bdf8;background:rgba(56,189,248,.15);color:#38bdf8}
-#wind-toggle.loading{opacity:.6;cursor:progress}
-#wind-state{font-size:10px;color:#536471;font-weight:700}
-#wind-toggle.on #wind-state{color:#38bdf8}
+#wind-time.show{display:flex}
+#wind-time-label{font-size:12px;color:#38bdf8;font-weight:700;white-space:nowrap;min-width:108px;text-align:center}
+#wind-time-range{width:230px;accent-color:#38bdf8;cursor:pointer}
+@media (max-width:768px){#wind-time{bottom:74px;padding:7px 10px}#wind-time-range{width:150px}#wind-time-label{min-width:96px;font-size:11px}}
 #map-hint{
   position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
   background:rgba(0,0,0,0.78);border:1px solid #2f3336;border-radius:20px;
@@ -728,8 +730,11 @@ html,body{height:100%;background:#000;color:#e7e9ea;font-family:-apple-system,"s
       <div class="leg-r"><div class="leg-d" style="background:#56d364"></div> 교통</div>
       <div class="leg-r"><div class="leg-d" style="background:#ff8c00"></div> 용인시</div>
     </div>
-    <button id="wind-toggle" type="button" title="한국 연안 바람 (open-meteo)">🌬 바람 <span id="wind-state">OFF</span></button>
     <div id="map-hint">📍 핀을 클릭하면 영상 · 날씨 정보를 볼 수 있어요</div>
+    <div id="wind-time">
+      <span id="wind-time-label">—</span>
+      <input id="wind-time-range" type="range" min="0" max="0" value="0" step="1">
+    </div>
   </div>
 
   <!-- DETAIL PANEL -->
@@ -2531,54 +2536,90 @@ document.querySelectorAll('#nav-row1 .ntab[data-cat]').forEach(b=>b.addEventList
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeTide();}});
 window.loadMarine = loadMarine;
 
-// ── 한국 연안 바람 레이어 (leaflet-velocity + /api/wind) ──
+// ── 한국 연안 바람 레이어 + 시간 슬라이더 (leaflet-velocity + /api/wind) ──
 (function(){
-  const btn = document.getElementById('wind-toggle');
-  const stateEl = document.getElementById('wind-state');
-  if(!btn || typeof L === 'undefined' || !L.velocityLayer){ if(btn) btn.style.display='none'; return; }
-  let layer = null, busy = false;
+  if(typeof L === 'undefined' || !L.velocityLayer) return;
+  let btn = null, layer = null, frames = null, on = false, busy = false;
+  const box = document.getElementById('wind-time');
+  const slider = document.getElementById('wind-time-range');
+  const tlabel = document.getElementById('wind-time-label');
+  const todayK = new Date().toLocaleDateString('sv-SE', { timeZone:'Asia/Seoul' });
 
+  function fmtT(iso){
+    if(!iso || iso.indexOf('T')<0) return '—';
+    const [dp, tp] = iso.split('T');
+    const hh = tp.slice(0,2);
+    const [ , Mo, Da] = dp.split('-');
+    const diff = Math.round((new Date(dp+'T00:00:00+09:00') - new Date(todayK+'T00:00:00+09:00'))/86400000);
+    const day = diff===0?'오늘' : diff===1?'내일' : diff===2?'모레' : (Number(Mo)+'/'+Number(Da));
+    return day + ' ' + hh + '시';
+  }
+  function buildLayer(data){
+    return L.velocityLayer({
+      displayValues: true,
+      displayOptions: { velocityType:'바람', position:'bottomleft', emptyString:'바람 데이터 없음', angleConvention:'bearingCW', speedUnit:'m/s' },
+      data: data,
+      maxVelocity: 15,
+      velocityScale: 0.01,
+      particleMultiplier: (typeof isMobile !== 'undefined' && isMobile) ? 1/600 : 1/300,
+      colorScale: ['#3288bd','#66c2a5','#abdda4','#e6f598','#fee08b','#fdae61','#f46d43','#d53e4f']
+    });
+  }
+  function setFrame(i){
+    const f = frames && frames[i];
+    if(!f) return;
+    if(layer && layer.setData){ try{ layer.setData(f.data); }catch(e){ recreate(f.data); } }
+    else recreate(f.data);
+    if(tlabel) tlabel.textContent = fmtT(f.time);
+  }
+  function recreate(data){
+    if(layer && map.hasLayer(layer)) map.removeLayer(layer);
+    layer = buildLayer(data); map.addLayer(layer);
+  }
   async function enable(){
     if(busy) return;
-    busy = true; btn.classList.add('loading'); stateEl.textContent = '로딩…';
+    busy = true; if(btn){ btn.classList.add('wind-loading'); btn.textContent='🌬 …'; }
     try{
-      if(!layer){
+      if(!frames){
         const res = await fetch('/api/wind');
         if(!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        if(!Array.isArray(data) || data.length < 2) throw new Error('bad data');
-        layer = L.velocityLayer({
-          displayValues: true,
-          displayOptions: {
-            velocityType: '바람',
-            position: 'bottomleft',
-            emptyString: '바람 데이터 없음',
-            angleConvention: 'bearingCW',
-            speedUnit: 'm/s'
-          },
-          data: data,
-          maxVelocity: 15,
-          velocityScale: 0.01,
-          particleMultiplier: (typeof isMobile !== 'undefined' && isMobile) ? 1/600 : 1/300,
-          colorScale: ['#3288bd','#66c2a5','#abdda4','#e6f598','#fee08b','#fdae61','#f46d43','#d53e4f']
-        });
+        const j = await res.json();
+        frames = (j && Array.isArray(j.frames)) ? j.frames : null;
+        if(!frames || !frames.length || !Array.isArray(frames[0].data)) throw new Error('bad data');
       }
-      map.addLayer(layer);
-      btn.classList.add('on'); stateEl.textContent = 'ON';
+      layer = buildLayer(frames[0].data); map.addLayer(layer);
+      if(slider){ slider.max = String(frames.length-1); slider.value = '0'; }
+      if(tlabel) tlabel.textContent = fmtT(frames[0].time);
+      if(box) box.classList.add('show');
+      on = true;
+      if(btn){ btn.classList.add('wind-active'); btn.textContent='🌬 바람 끄기'; }
     }catch(e){
-      stateEl.textContent = '실패';
-      setTimeout(()=>{ if(!btn.classList.contains('on')) stateEl.textContent = 'OFF'; }, 2500);
+      if(btn){ btn.textContent='🌬 실패'; setTimeout(()=>{ if(!on && btn) btn.textContent='🌬 바람'; }, 2500); }
     }finally{
-      busy = false; btn.classList.remove('loading');
+      busy = false; if(btn) btn.classList.remove('wind-loading');
     }
   }
   function disable(){
     if(layer && map.hasLayer(layer)) map.removeLayer(layer);
-    btn.classList.remove('on'); stateEl.textContent = 'OFF';
+    if(box) box.classList.remove('show');
+    on = false;
+    if(btn){ btn.classList.remove('wind-active'); btn.textContent='🌬 바람'; }
   }
-  btn.addEventListener('click', ()=>{
-    if(btn.classList.contains('on')) disable(); else enable();
+  if(slider) slider.addEventListener('input', ()=> setFrame(+slider.value));
+
+  const WindControl = L.Control.extend({
+    options:{ position:'topright' },
+    onAdd:function(){
+      const b = L.DomUtil.create('button','leaflet-sat-btn');
+      b.title = '한국 연안 바람 (open-meteo · 48시간 예보)';
+      b.textContent = '🌬 바람';
+      L.DomEvent.disableClickPropagation(b);
+      L.DomEvent.on(b,'click',function(){ on ? disable() : enable(); });
+      btn = b;
+      return b;
+    }
   });
+  new WindControl().addTo(map);
 })();
 
 // ═══ INIT ══════════════════════════════════════════════════════
