@@ -15,7 +15,7 @@ export async function handleWind(request, env, ctx) {
   const url = new URL(request.url);
   const headers = {
     "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "public, max-age=3600",
+    "Cache-Control": "public, max-age=300, s-maxage=3600",
   };
 
   const cache = caches.default;

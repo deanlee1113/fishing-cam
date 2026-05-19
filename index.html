@@ -2581,7 +2581,7 @@ window.loadMarine = loadMarine;
     busy = true; if(btn){ btn.classList.add('wind-loading'); btn.textContent='🌬 …'; }
     try{
       if(!frames){
-        const res = await fetch('/api/wind');
+        const res = await fetch('/api/wind?_=' + Date.now(), { cache: 'no-store' });
         if(!res.ok) throw new Error('HTTP ' + res.status);
         const j = await res.json();
         frames = (j && Array.isArray(j.frames)) ? j.frames : null;
@@ -2594,6 +2594,7 @@ window.loadMarine = loadMarine;
       on = true;
       if(btn){ btn.classList.add('wind-active'); btn.textContent='🌬 바람 끄기'; }
     }catch(e){
+      console.warn('[wind] enable 실패:', e && e.message ? e.message : e);
       if(btn){ btn.textContent='🌬 실패'; setTimeout(()=>{ if(!on && btn) btn.textContent='🌬 바람'; }, 2500); }
     }finally{
       busy = false; if(btn) btn.classList.remove('wind-loading');
